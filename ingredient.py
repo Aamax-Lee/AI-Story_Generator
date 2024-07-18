@@ -6,14 +6,23 @@ from web_search import GoogleCustomSearch
 from streamlit_navigation_bar import st_navbar
 from edamam import Edamam
 
+import os
+
+  
+
 page = st_navbar(["Casual", "Athletes","FAQ"])
 # if page == "Casual":
 
-OPENAI_API_KEY = st.secrets['OPENAI_KEY']
-GOOGLE_SEARCH_API_KEY = st.secrets['GOOGLE_SEARCH_API_KEY']
-SEARCH_ENGINE_ID = st.secrets['SEARCH_ENGINE_ID']
-EDAMAM_APP_KEY = st.secrets['EDAMAM_APP_KEY']
-EDAMAM_APP_ID = st.secrets['EDAMAM_APP_ID']
+OPENAI_API_KEY = os.environ['OPENAI_KEY']  
+GOOGLE_SEARCH_API_KEY = os.environ['GOOGLE_SEARCH_API_KEY']
+SEARCH_ENGINE_ID = os.environ['SEARCH_ENGINE_ID']
+EDAMAM_APP_ID = os.environ['EDAMAM_APP_KEY']
+EDAMAM_APP_KEY = os.environ['EDAMAM_APP_ID']
+# OPENAI_API_KEY = st.secrets['OPENAI_KEY']
+# GOOGLE_SEARCH_API_KEY = st.secrets['GOOGLE_SEARCH_API_KEY']
+# SEARCH_ENGINE_ID = st.secrets['SEARCH_ENGINE_ID']
+# EDAMAM_APP_KEY = st.secrets['EDAMAM_APP_KEY']
+# EDAMAM_APP_ID = st.secrets['EDAMAM_APP_ID']
 
 food_ai = FoodAI(api_key=OPENAI_API_KEY)
 fn = FoodNames()
