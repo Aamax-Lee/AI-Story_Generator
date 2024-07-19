@@ -18,7 +18,6 @@ class GoogleCustomSearch:
     def generate_recipe_links(self, food):
         query = f"Recipe for {food}"
         search_results = self.web_search(query)
-        print(search_results)
         recipe_links = [
             item['link'] for item in search_results.get('items', [])
         ]

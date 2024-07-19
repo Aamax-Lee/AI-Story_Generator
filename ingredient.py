@@ -5,10 +5,12 @@ from food_ai_api import FoodAI
 from web_search import GoogleCustomSearch
 from streamlit_navigation_bar import st_navbar
 from edamam import Edamam
+from info_helper import InformationHelper
+from graph import NutrientGrapher
 
 import os
 
-page = st_navbar(["Casual", "Athletes", "FAQ"])
+page = st_navbar(["Casual", "Athletes", "History", "FAQ"])
 # if page == "Casual":
 
 OPENAI_API_KEY = os.environ["OPENAI_KEY"]
@@ -16,19 +18,13 @@ GOOGLE_SEARCH_API_KEY = os.environ["GOOGLE_SEARCH_API_KEY"]
 SEARCH_ENGINE_ID = os.environ["SEARCH_ENGINE_ID"]
 EDAMAM_APP_ID = os.environ["EDAMAM_APP_ID"]
 EDAMAM_APP_KEY = os.environ["EDAMAM_APP_KEY"]
-# OPENAI_API_KEY = st.secrets['OPENAI_KEY']
-# GOOGLE_SEARCH_API_KEY = st.secrets['GOOGLE_SEARCH_API_KEY']
-# SEARCH_ENGINE_ID = st.secrets['SEARCH_ENGINE_ID']
-# EDAMAM_APP_KEY = st.secrets['EDAMAM_APP_KEY']
-# EDAMAM_APP_ID = st.secrets['EDAMAM_APP_ID']
 
 food_ai = FoodAI(api_key=OPENAI_API_KEY)
 fn = FoodNames()
-search_recipe_links = GoogleCustomSearch(
-    api_key=GOOGLE_SEARCH_API_KEY, search_engine_id=SEARCH_ENGINE_ID
-)
+search_recipe_links = GoogleCustomSearch(api_key=GOOGLE_SEARCH_API_KEY, search_engine_id=SEARCH_ENGINE_ID)
 edamam_search = Edamam(app_key=EDAMAM_APP_KEY, app_id=EDAMAM_APP_ID)
-
+info_helper = InformationHelper()
+nutgraph = NutrientGrapher()
 
 def encode_image(image_path):
     return base64.b64encode(image_path.read()).decode("utf-8")
@@ -37,6 +33,25 @@ def encode_image(image_path):
 # ---------------UI-------------------
 
 st.title("Grandma's AI")
+
+if page == "History":
+    recipes = info_helper.get_recipes()
+    
+    st.title("Recipe History")
+    for recipe in recipes:
+        with st.expander(recipe["name"]):
+            st.write(f"## {recipe["name"]}")
+            st.write("#### Ingredients")
+            st.write(recipe["ingredients"])
+            st.write("#### Steps")
+            st.write(recipe["steps"])
+            
+            st.write("#### Filters")
+            st.write(f"Preparation Level: {recipe['filters']['prep_level']}")
+            st.write(f"Dietary Restrictions: {recipe['filters']['dietary_restrictions']}")
+            st.write(f"Cuisine Type: {recipe['filters']['cuisine_choices']}")
+            st.write(f"Excluded Foods: {', '.join(recipe['filters']['excluded_foods']) if recipe['filters']['excluded_foods'] != [] else 'None'}")
+                
 
 if page == "Athletes" or page == "Casual":
     athcol1, athcol2, athcol3 = st.columns([1, 1, 1])
@@ -85,8 +100,7 @@ if page == "Casual":
         )
 
     with col2:
-        filter_options = st.multiselect("Foods to not include", fn.get_food_names())
-
+        filter_options = list(st.multiselect("Foods to not include", fn.get_food_names()))
         filter_ingredient_string = ", ".join([i for i in filter_options])
 
 if page == "Athletes" or page == "Casual":
@@ -155,8 +169,12 @@ if page == "Casual":
         dietary_string = ""
         if dietary_restrictions != "None":
             f"Please return recipes that are suitable for {dietary_restrictions}"
+            
+        filters = {"prep_level": prep_level, "dietary_restrictions": dietary_restrictions, "cuisine_choices": cuisine_choices, "excluded_foods" : filter_options}
+        st.write(filters)
+        
+# ------------------MEAL GENERATION-------------------------
 
-        # meal suggestion for easy level
         if data != None:
             st.title(f"{prep_level} Options")
             easy_meals = food_ai.meal_suggestion(
@@ -167,72 +185,44 @@ if page == "Casual":
                 cuisine_choices,
             )
             data = easy_meals
-
-            meals = easy_meals.split("Meal ")
-
-            mealFull1 = meals[1][3:]
-            mealFull2 = meals[2][3:]
-
-            meal1name = meals[1].split("\n")[0][3:]
-            meal2name = meals[2].split("\n")[0][3:]
-
-            links1 = search_recipe_links.generate_recipe_links(meal1name)
-            links2 = search_recipe_links.generate_recipe_links(meal2name)
-
-            st.header(meal1name)
-            with st.expander(f"View Meal 1 Info"):
-                st.write(mealFull1)
-
-            with st.expander(f"Links to recipes and resources for: {meal1name}"):
-                # st.markdown(f"<h2><b>Recipes and resources for: {meal1}</b></h2>", unsafe_allow_html=True)
-                for i in range(len(links1)):
-                    st.write(f"{i+1}: {links1[i]}")
-
-            st.header(meal2name)
-            with st.expander(f"View Meal 2 Info"):
-                st.write(mealFull2)
-
-            with st.expander(f"Links to recipes and resources for: {meal2name}"):
-
-                for i in range(len(links2)):
-                    st.write(f"{i+1}: {links2[i]}")
-            # is_text += easy_meals
-
-            # -------Get the Ingredients and Feed into Edamam API for Nutritional Facts-------
-
-            ingredients = (
-                easy_meals.split("Ingredients:")[1].split("Recipe")[0].split("\n")[1:-1]
-            )
-            # st.write(ingredients)
-            new_ingredients = [
-                i[2:].strip() for i in ingredients if i != "" or i != "**"
-            ][: len(ingredients) // 3]
-            # st.write(new_ingredients)
-            complete_ingredient_list = ", ".join(new_ingredients).replace("-", "")
-            # st.write(complete_ingredient_list)
-            nutri_facts = edamam_search.get_nutritional_facts(complete_ingredient_list)
-
-            st.write(nutri_facts)
-
-            ingredients1 = (
-                easy_meals.split("Ingredients:")[2].split("Recipe")[0].split("\n")[1:-1]
-            )
-            # st.write(ingredients)
-            new_ingredients1 = [
-                i[2:].strip() for i in ingredients1 if i != "" or i != "**"
-            ][: len(ingredients1) // 3]
-            # st.write(new_ingredients)
-            complete_ingredient_list1 = ", ".join(new_ingredients1).replace("-", "")
-            # st.write(complete_ingredient_list)
-            nutri_facts1 = edamam_search.get_nutritional_facts(
-                complete_ingredient_list1
-            )
-
-            # Insert Data into Firebase
-
-            st.write(nutri_facts1)
-            for i in range(1, len(nutri_facts1)):
-                pass
+            print(easy_meals)
+            st.write(easy_meals)
+            
+            if "**Ingredients:**" in easy_meals:
+                splits = easy_meals.split("###")
+            else:
+                splits = easy_meals.split("### Meal")
+            
+            meal_index = 1
+            for meal in splits[1:]:
+                if "**Ingredients:**" in meal:
+                    name, ingredients, recipe = info_helper.parse_recipe(meal)
+                else:
+                    name, ingredients, recipe = info_helper.parse_recipe_2nd(meal)  
+                                  
+                links = search_recipe_links.generate_recipe_links(name)
+                st.header(name)
+                with st.expander(f"View Meal {meal_index} Info"):
+                    st.write(meal)
+                
+                with st.expander(f"Links to recipes and resources for: {name}"):
+                    for i in range(len(links)):
+                        st.write(f"{i+1}: {links[i]}")
+                        
+                ing1 = ingredients.replace(",", "")
+                ing = ing1.replace("\n-", ",")[2:]
+                array_ingredients = info_helper.ingredient_parser(ing)
+                nutrients = edamam_search.get_nutritional_facts_post(array_ingredients)
+                
+                with st.expander(f"Meal {meal_index} Nutritional Values"):
+                    if "totalNutrients" not in nutrients:
+                        break
+                    st.write("Nutritional Values")
+                    nuts = info_helper.parse_nutrients(nutrients)
+                    nutgraph.plot_nutrient_graph(nuts)
+                
+                info_helper.insert_recipe(name, ingredients, recipe, nutrients, filters)
+                meal_index += 1
 
 # -------------FAQ-------------------
 if page == "FAQ":
