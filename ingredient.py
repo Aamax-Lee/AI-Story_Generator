@@ -32,7 +32,7 @@ def encode_image(image_path):
 
 # ---------------UI-------------------
 
-st.title("Grandma's AI")
+st.title("Grandma's Cooking AI")
 
 if page == "History":
     recipes = info_helper.get_recipes()
@@ -51,7 +51,8 @@ if page == "History":
             st.write(f"Dietary Restrictions: {recipe['filters']['dietary_restrictions']}")
             st.write(f"Cuisine Type: {recipe['filters']['cuisine_choices']}")
             st.write(f"Excluded Foods: {', '.join(recipe['filters']['excluded_foods']) if recipe['filters']['excluded_foods'] != [] else 'None'}")
-                
+            nutrients = info_helper.parse_nutrients(recipe["nutrients"])
+            nutgraph.plot_nutrient_graph(nutrients)
 
 if page == "Athletes" or page == "Casual":
     athcol1, athcol2, athcol3 = st.columns([1, 1, 1])
@@ -185,7 +186,6 @@ if page == "Casual" or page == "Athletes":
                     cuisine_choices,
                 )
                 data = easy_meals
-                print(easy_meals)
             elif page == "Athletes":
                 easy_meals = food_ai.athlete_meal_suggestion(
                     all_ingredients,
@@ -196,7 +196,6 @@ if page == "Casual" or page == "Athletes":
                     cut_bulk,
                 )
                 data = easy_meals
-                print(easy_meals)
 
             if "**Ingredients:**" in easy_meals:
                 splits = easy_meals.split("###")
@@ -213,6 +212,8 @@ if page == "Casual" or page == "Athletes":
                     name, ingredients, recipe = info_helper.parse_recipe_2nd(meal)  
                                   
                 links = search_recipe_links.generate_recipe_links(name)
+                st.write(name)
+                st.write(links)
                 st.header(name)
                 with st.expander(f"View Meal {meal_index} Info"):
                     st.write(meal)
@@ -247,3 +248,4 @@ if page == "FAQ":
         st.markdown(
             "Athletes mode provides more tailored and personalised recipes for users who seeks to gain muscle or cut body fat through a combination of high-quality meals."
         )
+
