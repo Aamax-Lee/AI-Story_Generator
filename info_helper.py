@@ -63,8 +63,3 @@ class InformationHelper:
             "Type": ["Macro" if nutcode in ["ENERC_KCAL", "FAT", "FASAT", "FATRN", "CHOCDF", "FIBTG", "SUGAR", "PROCNT"] else "Micro" for nutcode in main]}
         
         return nutdict
-    
-    
-        
-    
-if __name__ 
