@@ -40,7 +40,7 @@ if page == "History":
     st.title("Recipe History")
     for recipe in recipes:
         with st.expander(recipe["name"]):
-            st.write(f"## {recipe["name"]}")
+            st.title(recipe["name"])
             st.write("#### Ingredients")
             st.write(recipe["ingredients"])
             st.write("#### Steps")
