@@ -150,7 +150,7 @@ if page == "Athletes" or page == "Casual":
         "Upload pictures of past meals (Min 3)", accept_multiple_files=True
     )
 
-if page == "Casual":
+if page == "Casual" or page == "Athletes":
     data = None
     generate_recipe = st.button("Generate Recipes")
     if generate_recipe and len(uploaded_file) >= 3:
@@ -171,23 +171,33 @@ if page == "Casual":
             f"Please return recipes that are suitable for {dietary_restrictions}"
             
         filters = {"prep_level": prep_level, "dietary_restrictions": dietary_restrictions, "cuisine_choices": cuisine_choices, "excluded_foods" : filter_options}
-        st.write(filters)
         
 # ------------------MEAL GENERATION-------------------------
 
         if data != None:
             st.title(f"{prep_level} Options")
-            easy_meals = food_ai.meal_suggestion(
-                all_ingredients,
-                prep_level,
-                filter_ingredient_string,
-                dietary_restrictions,
-                cuisine_choices,
-            )
-            data = easy_meals
-            print(easy_meals)
-            st.write(easy_meals)
-            
+            if page == "Casual":
+                easy_meals = food_ai.meal_suggestion(
+                    all_ingredients,
+                    prep_level,
+                    filter_ingredient_string,
+                    dietary_restrictions,
+                    cuisine_choices,
+                )
+                data = easy_meals
+                print(easy_meals)
+            elif page == "Athletes":
+                easy_meals = food_ai.athlete_meal_suggestion(
+                    all_ingredients,
+                    prep_level,
+                    filter_ingredient_string,
+                    dietary_restrictions,
+                    cuisine_choices,
+                    cut_bulk,
+                )
+                data = easy_meals
+                print(easy_meals)
+
             if "**Ingredients:**" in easy_meals:
                 splits = easy_meals.split("###")
             else:
@@ -195,7 +205,9 @@ if page == "Casual":
             
             meal_index = 1
             for meal in splits[1:]:
-                if "**Ingredients:**" in meal:
+                if "**Instructions:**" in meal:
+                    name, ingredients, recipe = info_helper.new_parse_recipe(meal)
+                elif "**Ingredients:**" in meal:
                     name, ingredients, recipe = info_helper.parse_recipe(meal)
                 else:
                     name, ingredients, recipe = info_helper.parse_recipe_2nd(meal)  

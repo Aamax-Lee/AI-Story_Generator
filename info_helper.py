@@ -12,6 +12,9 @@ class InformationHelper:
     
     def parse_recipe(self, recipe):
         name = recipe.split(":")[1].split("**")[0]
+        if name == '':
+            name = recipe.split(":")[0].split("**")[0]
+            
         ingredients = recipe.split("**Ingredients:**")[1].split("**Recipe:**")[0]
         recipe = recipe.split("**Recipe:**")[1]
         
@@ -23,6 +26,13 @@ class InformationHelper:
         ingredients = parts[2].replace("Ingredients:", "")
         steps= parts[3].replace("Recipe:", "")
         return name, ingredients, steps
+    
+    def new_parse_recipe(self, meal):
+        name = meal.split(":")[1].split("**")[0]
+        ingredients = meal.split("**Ingredients:**")[1].split("**Instructions:**")[0]
+        recipe = meal.split("**Instructions:**")[1]
+        
+        return name, ingredients, recipe
     
     def insert_recipe(self, name, ingredients, steps, nutrients, filters):
         data = {

@@ -28,5 +28,5 @@ class Edamam():
                 "prep": "string"
             }
         )
-        
+        print(result.json())
         return result.json()
