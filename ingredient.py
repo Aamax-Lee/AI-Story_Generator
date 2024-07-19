@@ -212,8 +212,7 @@ if page == "Casual" or page == "Athletes":
                     name, ingredients, recipe = info_helper.parse_recipe_2nd(meal)  
                                   
                 links = search_recipe_links.generate_recipe_links(name)
-                st.write(name)
-                st.write(links)
+                
                 st.header(name)
                 with st.expander(f"View Meal {meal_index} Info"):
                     st.write(meal)
